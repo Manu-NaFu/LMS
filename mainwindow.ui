@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1075</width>
+    <height>875</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>1075</width>
+    <height>875</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>1075</width>
+    <height>875</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>LMS</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(30,50,56);</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QPushButton" name="b_new_map">
+    <property name="geometry">
+     <rect>
+      <x>850</x>
+      <y>50</y>
+      <width>200</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>If the device does not stop running and no map is started after a few seconds, restart the app.</string>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(0, 96, 100);
+color: rgb(238, 238, 236);</string>
+    </property>
+    <property name="text">
+     <string>New map (Start mapping)</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="b_save_map">
+    <property name="geometry">
+     <rect>
+      <x>850</x>
+      <y>80</y>
+      <width>200</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Activating this button will stop the mapping&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(0, 96, 100);
+color: rgb(238, 238, 236);</string>
+    </property>
+    <property name="text">
+     <string>Save map</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="b_load">
+    <property name="geometry">
+     <rect>
+      <x>850</x>
+      <y>200</y>
+      <width>200</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(74, 96, 107);
+color: rgb(238, 238, 236);</string>
+    </property>
+    <property name="text">
+     <string>Load simulation</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="b_save_sim">
+    <property name="geometry">
+     <rect>
+      <x>850</x>
+      <y>110</y>
+      <width>200</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(0, 96, 100);
+color: rgb(238, 238, 236);</string>
+    </property>
+    <property name="text">
+     <string>Save data for simulation</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>850</x>
+      <y>230</y>
+      <width>50</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(74, 96, 107);
+color: rgb(238, 238, 236);</string>
+    </property>
+    <property name="text">
+     <string>Speed:</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="text_spd">
+    <property name="geometry">
+     <rect>
+      <x>901</x>
+      <y>230</y>
+      <width>132</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(74, 96, 107);
+color: rgb(238, 238, 236);</string>
+    </property>
+    <property name="text">
+     <string>100</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>1035</x>
+      <y>230</y>
+      <width>15</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(74, 96, 107);
+color: rgb(238, 238, 236);</string>
+    </property>
+    <property name="text">
+     <string>%</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="b_set_parameters">
+    <property name="geometry">
+     <rect>
+      <x>850</x>
+      <y>320</y>
+      <width>200</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Using this button is optional, all the parameters needed have a default value.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(89, 126, 143);
+color: rgb(238, 238, 236);</string>
+    </property>
+    <property name="text">
+     <string>Set parameters</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="map">
+    <property name="geometry">
+     <rect>
+      <x>25</x>
+      <y>25</y>
+      <width>800</width>
+      <height>800</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>72</pointsize>
+     </font>
+    </property>
+    <property name="cursor">
+     <cursorShape>CrossCursor</cursorShape>
+    </property>
+    <property name="mouseTracking">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>MAP</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="b_start_stop">
+    <property name="geometry">
+     <rect>
+      <x>850</x>
+      <y>260</y>
+      <width>200</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(74, 96, 107);
+color: rgb(238, 238, 236);</string>
+    </property>
+    <property name="text">
+     <string>Start/Stop</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="b_restart">
+    <property name="geometry">
+     <rect>
+      <x>850</x>
+      <y>140</y>
+      <width>200</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(0, 96, 100);
+color: rgb(238, 238, 236);</string>
+    </property>
+    <property name="text">
+     <string>Reset</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="simu_finished">
+    <property name="geometry">
+     <rect>
+      <x>840</x>
+      <y>570</y>
+      <width>150</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(132, 207, 176);
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="map_button">
+    <property name="geometry">
+     <rect>
+      <x>25</x>
+      <y>25</y>
+      <width>800</width>
+      <height>800</height>
+     </rect>
+    </property>
+    <property name="cursor">
+     <cursorShape>CrossCursor</cursorShape>
+    </property>
+    <property name="mouseTracking">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="flat">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="t_point1">
+    <property name="geometry">
+     <rect>
+      <x>850</x>
+      <y>410</y>
+      <width>100</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Click two points on the map and you will get the distance</string>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lab_distance">
+    <property name="geometry">
+     <rect>
+      <x>850</x>
+      <y>470</y>
+      <width>200</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="b_distance">
+    <property name="geometry">
+     <rect>
+      <x>850</x>
+      <y>380</y>
+      <width>200</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(54, 104, 117);
+color: rgb(238, 238, 236);</string>
+    </property>
+    <property name="text">
+     <string>Get distance between points</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="t_point2">
+    <property name="geometry">
+     <rect>
+      <x>950</x>
+      <y>410</y>
+      <width>100</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Click two points on the map and you will get the distance</string>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="l_point1">
+    <property name="geometry">
+     <rect>
+      <x>850</x>
+      <y>440</y>
+      <width>100</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Click two points on the map and you will get the distance</string>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="l_point2">
+    <property name="geometry">
+     <rect>
+      <x>950</x>
+      <y>440</y>
+      <width>100</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Click two points on the map and you will get the distance</string>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1075</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
