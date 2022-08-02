@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "ui_parameters.h"
 #include "parameters.h"
@@ -30,15 +30,27 @@
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QString>
+#include <QDebug>
 
+
+Q_DECLARE_METATYPE(rplidar_response_measurement_node_hq_t)
+Q_DECLARE_METATYPE(rplidar_response_measurement_node_hq_t*)
+Q_DECLARE_OPAQUE_POINTER(rplidar_response_measurement_node_hq_t)
+
+Q_DECLARE_METATYPE(cv::Mat)
+Q_DECLARE_METATYPE(cv::Mat*)
+Q_DECLARE_OPAQUE_POINTER(cv::Mat)
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    //ui->label_auto->setVisible(false);
     //this->setStyleSheet("background-color: rgb(30,50,56);");
-    connect(ui->b_set_parameters,SIGNAL(clicked()),this,SLOT(btnaction())); // creating connections to activate the window parameters once the user clicks the button.
+    connect(ui->b_set_parameters,SIGNAL(clicked()),this,SLOT(btnparameters())); // creating connections to activate the window parameters once the user clicks the button.
+//    connect(ui->joyPad, &JoyPad::xChanged, this, &MainWindow::joypad_x_changed);
+//    connect(ui->joyPad, &JoyPad::yChanged, this, &MainWindow::joypad_y_changed);
 
     param = new parameters; //Assigning a new parameters to the class param.
 
@@ -47,28 +59,39 @@ MainWindow::MainWindow(QWidget *parent)
     points = 0; //Initialising the number of points clicked.
 
     work.setAutoDelete(false); //The thread is not deleted after calling run();
-    connect(&work, &Work::print_img,this, &MainWindow::print_img); //Connecting the slot print_img of the mainwindow from the signal print_img of the work class.
-    connect(&work, &Work::error_port,this, &MainWindow::error_port); //Connecting the slot error_port of the mainwindow from the signal error_port of the work class.
+    connect(&work, &Work::print_img,  this, &MainWindow::print_img); //Connecting the slot print_img of the mainwindow from the signal print_img of the work class.
+    connect(&work, &Work::error_port, this, &MainWindow::error_port); //Connecting the slot error_port of the mainwindow from the signal error_port of the work class.
 
     simulation.setAutoDelete(false); //The thread is not deleted after calling run();
-    connect(&simulation, &Simulation::print_img,this, &MainWindow::print_img); //Connecting the slot print_img of the mainwindow from the signal print_img of the simulation class.
-    connect(&simulation, &Simulation::sim_finished,this, &MainWindow::sim_finished); //Connecting the slot sim_finished of the mainwindow from the signal sim_finished of the simulation class.
+    qRegisterMetaType<cv::Mat>("cv::Mat");
+    connect(&simulation, &Simulation::print_img,         this,     &MainWindow::print_img); //Connecting the slot print_img of the mainwindow from the signal print_img of the simulation class.
+    connect(&simulation, &Simulation::sim_finished,      this,     &MainWindow::sim_finished); //Connecting the slot sim_finished of the mainwindow from the signal sim_finished of the simulation class.
+    connect(&simulation, &Simulation::path_not_found,    this,     &MainWindow::path_not_found);
+    connect(&simulation, &Simulation::wait_for_readings, &sim_env, &Sim_env::create_readings);
+    connect(&simulation, &Simulation::move_robot,        &sim_env, &Sim_env::move_robot);
+
+    sim_env.setAutoDelete(false); //The thread is not deleted after calling run();
+    qRegisterMetaType<rplidar_response_measurement_node_hq_t*>("rplidar_response_measurement_node_hq_t*");
+    connect(&sim_env,    &Sim_env::emit_readings,       &simulation, &Simulation::update_readings);
+    connect(ui->joyPad,  &JoyPad::xChanged,             &sim_env,    &Sim_env::update_x_speed);
+    connect(ui->joyPad,  &JoyPad::yChanged,             &sim_env,    &Sim_env::update_y_speed);
+    connect(&sim_env,    &Sim_env::moved,               &simulation, &Simulation::moved_robot);
+    connect(&sim_env,    &Sim_env::finished_navigation, &simulation, &Simulation::finished_navigation);
 
     setWindowIcon(QIcon(":./pixil-layer-Background.png"));
 
     work.init(); //Initialising work.
     simulation.init(); //Initialising simulation.
+    sim_env.init();
 }
 
 MainWindow::~MainWindow()
 {
     //Setting running conditions to false, freeing memory and waiting for threads.
-    work.setRunning(false);
-    simulation.setRunning(false);
-    simulation.setFinished(true);
     pool->waitForDone();
-    if(simulation.started())
-        delete[] simulation.readings_;
+    work.clear();
+    simulation.clear();
+    sim_env.clear();
     delete ui;
 }
 
@@ -89,6 +112,13 @@ void MainWindow::on_b_new_map_clicked()
         msg.setText("There is a simulation running or a map beeing created. If the map has finished, reset and start maping again");
         msg.exec();
     }
+}
+
+void MainWindow::path_not_found()
+{
+    QMessageBox msg;
+    msg.setText("The path is blocked.\n The robot cannot get there.");
+    msg.exec();
 }
 
 void MainWindow::on_b_save_map_clicked()
@@ -188,8 +218,7 @@ void MainWindow::on_b_restart_clicked()
     if (simulation.started() && !simulation.running())
     {
         //The elements of the UI are reset to their initial state, as well as the param class and the simulation class.
-        simulation.setFinished(true);
-        simulation.setStarted(false);
+        ui->sim_mode_label->setText("Simulation mode: live");
         ui->map->setText("MAP");
         ui->simu_finished->setText("");
         ui->text_spd->setText("100");
@@ -204,6 +233,7 @@ void MainWindow::on_b_restart_clicked()
         ui->lab_distance->setStyleSheet("");
         ui->lab_distance->setText("");
         simulation.clear();
+        sim_env.clear();
         param->clear();
     }
     //If there is a simulation started and running, a warning message is shown.
@@ -254,7 +284,7 @@ void MainWindow::on_b_restart_clicked()
 
 void MainWindow::on_b_load_clicked()
 {
-    //If there is no real map beeing created or finished and no simulation finished or
+    //If there is no real map beeing created or finished and no simulation finished or started
      if (!work.running() && !work.finished() && !simulation.running() && !simulation.finished() && !simulation.started())
      {
          //A file dialog is opened to ask the user for the path and file name to load.
@@ -286,6 +316,12 @@ void MainWindow::on_b_load_clicked()
              }
              simulation.setCount(count);
              simulation.setLoaded(true);
+             simulation.setLive(false);
+             simulation.setReadingsReady(true);
+             ui->sim_mode_label->setText("Simulation mode: loaded data");
+             ui->joyPad->setVisible(false);
+             ui->label_robot_c->setVisible(false);
+             ui->label_auto->setVisible(false);
              QMessageBox msg;
              msg.setText("Data loaded!");
              msg.exec();
@@ -321,13 +357,34 @@ void MainWindow::on_b_start_stop_clicked()
         {
             simulation.setRunning(true);
         }
-        //If the simulation has been loaded, there is no map beeing created and simulation is not started or running, then it starts.
-        else if (!simulation.running() && !work.running() && !simulation.started() && simulation.loaded())
+        //If the simulation has been loaded or is live, there is no map beeing created and simulation is not started or running, then it starts.
+        else if (!simulation.running() && !work.running() && !simulation.started() && (simulation.loaded() or simulation.live()))
         {
-            simulation.setRunning(true);
-            simulation.setStarted(true);
-            simulation.set_parameters(param->getPoint(), param->getWidth(), param->getHeight(), param->getXVariation(), param->getYVariation(), param->getAngleVariation(), param->getWeight(), ui->text_spd->text().toDouble(), param->getLevmarq(), param->getRangeX(), param->getRangeY(), param->getRangeAngle(), param->getIgnoreHuman());
-            pool->start(&simulation);
+            if (simulation.live())
+            {
+                QMessageBox msg;
+                msg.setText("Choose map file to run simulation.");
+                msg.exec();
+                QString fileName = QFileDialog::getOpenFileName(this, tr("Open map"), ".", tr("Image Files (*.png)"));
+                if (fileName.size() > 0)
+                {
+                    simulation.readings_ = (rplidar_response_measurement_node_hq_t*) std::malloc(sizeof(rplidar_response_measurement_node_hq_t)*200000);
+                    sim_env.set_parameters(param->getPoint(), fileName, ui->text_spd->text().toDouble());
+                    sim_env.setFinished(false);
+                    pool->start(&sim_env);
+                    while(!sim_env.started());
+                    timer_.start();
+                }
+            }
+            if (sim_env.started() or simulation.loaded())
+            {
+                simulation.setRunning(true);
+                simulation.setStarted(true);
+                param->setWidth(sim_env.width());
+                param->setHeight(sim_env.height());
+                simulation.set_parameters(param->getPoint(), param->getWidth(), param->getHeight(), param->getXVariation(), param->getYVariation(), param->getAngleVariation(), param->getWeight(), ui->text_spd->text().toDouble(), param->getLevmarq(), param->getRangeX(), param->getRangeY(), param->getRangeAngle(), param->getIgnoreHuman(), param->getSafetyDistance(), param->getPercOccupancy(), param->getHeuristic());
+                pool->start(&simulation);
+            }
         }
         //If there is a map beeing created, a warning message is shown.
         else if (work.running() || work.finished())
@@ -336,11 +393,11 @@ void MainWindow::on_b_start_stop_clicked()
             msg.setText("You cannot start or stop the simulation because a real map is beeing created or just finished.");
             msg.exec();
         }
-        //If there is no simulation loaded, a warning message is shown.
-        else if (!simulation.loaded())
+        //If there is no simulation loaded or is not live, a warning message is shown.
+        else if (!simulation.loaded() or !simulation.live())
         {
             QMessageBox msg;
-            msg.setText("There is no simulation data loaded.");
+            msg.setText("There is no simulation data loaded and simulation is not live.");
             msg.exec();
         }
 
@@ -353,7 +410,7 @@ void MainWindow::on_b_start_stop_clicked()
     }
 }
 
-void MainWindow::btnaction()
+void MainWindow::btnparameters()
 {
 
     //The parameters window will only be available when there is no map beeing created or simulation running.
@@ -370,6 +427,21 @@ void MainWindow::btnaction()
     }
 }
 
+void MainWindow::mousePressEvent(QMouseEvent* event)
+{
+    if(event->button() == Qt::RightButton)
+    {
+        QPoint aux_point = ui->map_button->mapFromGlobal(ui->map_button->cursor().pos());
+        if (simulation.started() && aux_point.x() >= 0 && aux_point.x() <= ui->map_button->size().width() && aux_point.y() >= 0 && aux_point.y() <= ui->map_button->size().height())
+        {
+            qDebug() << "Navigating to: " << aux_point;
+            simulation.setTargetP(cv::Point(aux_point.x()/(800.0/param->getWidth()), aux_point.y()/(800.0/param->getHeight())));
+            simulation.setStartedNewPath(true);
+            simulation.setNavigating(true);
+            //simulation.start_navigation(aux_point);
+        }
+    }
+}
 
 
 void MainWindow::on_map_button_clicked()
@@ -432,11 +504,16 @@ void MainWindow::on_b_distance_clicked()
 void MainWindow::on_text_spd_textChanged(const QString &arg1)
 {
     simulation.setSpeed(arg1.toDouble());
+    sim_env.setSpeed(arg1.toDouble());
 }
 
 void MainWindow::sim_finished()
 {
+   sim_env.clear();
    ui->simu_finished->setText("Simulation finished");
+   QMessageBox msg;
+   msg.setText("Simulation finished.\n");
+   msg.exec();
 }
 
 
@@ -453,12 +530,41 @@ void MainWindow::print_img(const QImage &img)
     ui->map->setPixmap(QPixmap::fromImage(img.rgbSwapped()));
 }
 
+//void MainWindow::on_manual_rb_clicked()
+//{
+//    ui->joyPad->setVisible(true);
+//    ui->label_auto->setVisible(false);
+//    auto_mode = false;
+//}
 
 
+//void MainWindow::on_auto_rb_clicked()
+//{
+//    ui->joyPad->setVisible(false);
+//    ui->label_auto->setVisible(true);
+//    auto_mode = true;
+//}
 
+void MainWindow::joypad_y_changed(float value)
+{
+    qDebug() << value;
+}
+void MainWindow::joypad_x_changed(float value)
+{
+    qDebug() << value;
+}
 
-
-
-
-
-
+void MainWindow::on_b_end_sim_clicked()
+{
+    simulation.setFinished(true);
+    simulation.setStarted(false);
+    simulation.setRunning(false);
+    sim_env.setFinished(true);
+    sim_env.setStarted(false);
+    sim_env.setRunning(false);
+    ui->simu_finished->setText("Simulation finished");
+    QMessageBox msg;
+    msg.setText("Simulation finished.\n");
+    msg.exec();
+    qDebug() << "Elapsed time (s): " << timer_.elapsed()/1000.0;
+}
